@@ -6,24 +6,15 @@ import {
   Switch
 } from 'react-router-dom'
 
-import history from './history'
 
 import TopicList from '../views/topic-list'
 import TopicDetail from '../views/topic-detail'
+import TestApi from '../views/test/TestApi'
 
 export default () => [
   <Route path="/" exact render={() => <Redirect to="/list" />} key="1" />,
-  <Route path="/list" component={TopicList} key="2" />,
-  <Route path="/detail" component={TopicDetail} key="3" />
+  <Route path="/list" component={TopicList} key="list" />,
+  <Route path="/detail" component={TopicDetail} key="detail" />,
+  <Route path="/test" component={TestApi} key="test" />
 ]
-// export default () => {
-//   return (
-//     <Router history={history} >
-//       <Switch>
-//         <Route path="/" exact render={() => <Redirect to="/list" />} key="1" />,
-//         <Route path="/list" component={TopicList} key="2" />,
-//         <Route path="/detail" component={TopicDetail} key="3" />
-//       </Switch>
-//     </Router>
-//   )
-// }
+

@@ -3,12 +3,27 @@ const ReactSSR = require('react-dom/server')
 const fs = require('fs')
 const path = require('path')
 const favicon = require('serve-favicon')
+const bodyParser = require('body-parser')
+const session = require('express-session')
 
 const isDev = process.env.NODE_ENV === 'development'
 
 const app = express()
-app.use(favicon(path.join(__dirname,'../favicon.ico')))
 
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(session({
+  maxAge: 10 * 60 * 1000,
+  name: 'tid',
+  resave: false,
+  saveUninitialized: false,
+  secret: 'react cnode ssr'
+}))
+
+app.use('/api/user', require('./util/handle-login'))
+app.use('/api', require('./util/proxy.js'))
+
+app.use(favicon(path.join(__dirname, '../favicon.ico')))
 
 if (!isDev) {
   const serverEntry = require('../dist/server-entry').default
@@ -24,7 +39,7 @@ if (!isDev) {
     const appString = ReactSSR.renderToString(serverEntry)
     res.send(template.replace('<!--app-->', appString))
   })
-}else{
+} else {
   const devStatic = require('./util/server-static')
   devStatic(app)
 }
