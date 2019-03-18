@@ -1,3 +1,7 @@
+/*
+*服务端渲染本地开发文件
+*/
+
 const axios = require('axios')
 const webpack = require('webpack')
 const path = require('path')
@@ -14,9 +18,8 @@ const getTemplate = () => {
       .then(res => {
         resolve(res.data)
       })
-      .catch(err=>{
+      .catch(err => {
         console.log(err);
-        
       })
   })
 }
@@ -25,7 +28,9 @@ const Module = module.constructor
 const serverCompiler = webpack(serverConfig)
 let mfs = new MemoryFs
 serverCompiler.outputFileSystem = mfs
-let serverBundle
+
+let serverBundle, createStoreMap
+
 serverCompiler.watch({}, (err, stats) => {
   if (err) throw err
   stats = stats.toJson()
@@ -42,7 +47,7 @@ serverCompiler.watch({}, (err, stats) => {
   const m = new Module()
   m._compile(bundle, 'server-entry.js')
   serverBundle = m.exports.default
-
+  createStoreMap = m.exports.createStoreMap
 })
 
 
@@ -51,9 +56,19 @@ module.exports = function (app) {
   app.use('/public', proxy({//代理静态文件
     target: 'http://localhost:8888'
   }))
-  app.get('*', function(req,res) {
+  app.get('*', function (req, res) {
     getTemplate().then(template => {
-      const content = ReactSSR.renderToString(serverBundle)
+      const routeContext = {}
+      const app = serverBundle(createStoreMap(), routeContext, req.url)
+
+      const content = ReactSSR.renderToString(app)
+
+      if (routeContext.url) {
+        res.status(302).setHeader('Location', routeContext.url)
+        res.end()
+        return
+      }
+
       res.send(template.replace('<!--app-->', content))
     })
   })

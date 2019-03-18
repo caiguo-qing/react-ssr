@@ -11,7 +11,7 @@ const root = document.querySelector('#root')
 const render = Component => {
   ReactDOM.hydrate(
     <AppContainer>
-      <Provider appStore={appStore} >
+      <Provider appStore={ new appStore()} >
         <BrowserRouter>
           <Component />
         </BrowserRouter>
